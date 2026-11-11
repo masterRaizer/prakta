@@ -3,7 +3,14 @@ name: Релиз примера ЛР 7–16
 on:
   push:
     tags: ['example-v*']
+    branches: ['ccr-f9189a9e-kuty4x']
+    paths:
+      - 'Пример_ЛР7-16/**'
+      - '.github/workflows/example-release.yml'
   workflow_dispatch:
+
+env:
+  RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'example-v1.0' }}
 
 permissions:
   contents: write
@@ -35,10 +42,16 @@ jobs:
           Copy-Item "Пример_ЛР7-16/Руководство_ЛР7-16.docx" out/Guide_Labs7-16.docx
 
       - name: Публикация релиза
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.ref_name }}" out/LabWorks_Example_App.zip out/LabWorks_Example_Source.zip out/Guide_Labs7-16.docx `
-            --title "Пример ЛР 7–16 (${{ github.ref_name }})" `
+          $files = @('out/LabWorks_Example_App.zip', 'out/LabWorks_Example_Source.zip', 'out/Guide_Labs7-16.docx')
+          gh release view $env:RELEASE_TAG *> $null
+          if ($LASTEXITCODE -eq 0) {
+            # Релиз уже есть — обновляем файлы.
+            gh release upload $env:RELEASE_TAG @files --clobber
+            exit $LASTEXITCODE
+          }
+          gh release create $env:RELEASE_TAG @files --target "${{ github.sha }}" `
+            --title "Пример ЛР 7–16 ($env:RELEASE_TAG)" `
             --notes "Разобранный пример лабораторных работ 7–16 на демонстрационном варианте c = (a² − b) / (a + 2b). LabWorks_Example_App.zip — готовая программа (Windows, .NET Framework 4.8); LabWorks_Example_Source.zip — решение Visual Studio; Guide_Labs7-16.docx — руководство."
