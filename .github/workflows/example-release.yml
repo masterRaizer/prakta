@@ -1,0 +1,44 @@
+name: Релиз примера ЛР 7–16
+
+on:
+  push:
+    tags: ['example-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Сборка
+        run: dotnet build "Пример_ЛР7-16/LabWorksExample.sln" -c Release
+
+      - name: Тесты (.NET Framework 4.8 и .NET 8)
+        run: dotnet test "Пример_ЛР7-16/LabWorksExample.sln" -c Release --no-build
+
+      - name: Архивы
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          Compress-Archive -Path "Пример_ЛР7-16/src/LabWorks.App/bin/Release/net48/*" -DestinationPath out/LabWorks_Example_App.zip
+          git archive --format=zip -o out/LabWorks_Example_Source.zip HEAD "Пример_ЛР7-16"
+          Copy-Item "Пример_ЛР7-16/Руководство_ЛР7-16.docx" out/Guide_Labs7-16.docx
+
+      - name: Публикация релиза
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" out/LabWorks_Example_App.zip out/LabWorks_Example_Source.zip out/Guide_Labs7-16.docx `
+            --title "Пример ЛР 7–16 (${{ github.ref_name }})" `
+            --notes "Разобранный пример лабораторных работ 7–16 на демонстрационном варианте c = (a² − b) / (a + 2b). LabWorks_Example_App.zip — готовая программа (Windows, .NET Framework 4.8); LabWorks_Example_Source.zip — решение Visual Studio; Guide_Labs7-16.docx — руководство."

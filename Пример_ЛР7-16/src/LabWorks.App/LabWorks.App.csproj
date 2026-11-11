@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Приложение Windows Forms для .NET Framework 4.8 (открывается в Visual Studio 2019). -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>LabWorks.App</RootNamespace>
+    <AssemblyName>LabWorks</AssemblyName>
+    <StartupObject>LabWorks.App.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LabWorks.Core\LabWorks.Core.csproj" />
+  </ItemGroup>
+</Project>
